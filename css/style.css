@@ -1,0 +1,6 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; overflow: hidden; }
+#game { position: relative; width: 100vw; height: 100vh; }
+#g, #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+#g { z-index: 1; }
+#hud { z-index: 2; pointer-events: none; }

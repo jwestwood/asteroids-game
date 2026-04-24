@@ -1,0 +1,12 @@
+{
+  "name": "asteroids-webgl",
+  "version": "1.0.0",
+  "description": "Browser-based Asteroids clone using WebGL",
+  "private": true,
+  "scripts": {
+    "start": "serve -l 8080"
+  },
+  "devDependencies": {
+    "serve": "^14.2.3"
+  }
+}
