@@ -5,7 +5,7 @@ export function initInput(onStart, onRestart) {
         keys[e.code] = true;
         if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
         if (e.code === 'Space') {
-            if (onStart && !onStart()) return;
+            if (onStart && onStart()) return;
             if (onRestart) onRestart();
         }
     });

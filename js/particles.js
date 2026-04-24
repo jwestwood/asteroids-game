@@ -17,3 +17,10 @@ export function createExplosion(x, y, count, speed, color, life, size) {
     }
     return arr;
 }
+
+export function renderParticles(draw, gl, particles) {
+    for (const p of particles) {
+        const alpha = p.life / p.maxLife;
+        draw(gl.POINTS, [0, 0], [p.r * alpha, p.g * alpha, p.b * alpha], p.x, p.y, p.size, 0, p.size * 2);
+    }
+}

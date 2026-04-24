@@ -5,12 +5,14 @@ const vsSource = `
     uniform vec2 uTrans;
     uniform float uScale;
     uniform float uRot;
+    uniform float uPointSize;
     varying vec3 vCol;
     void main() {
         float c = cos(uRot), s = sin(uRot);
         vec2 p = vec2(aPos.x * c - aPos.y * s, aPos.x * s + aPos.y * c);
         vec2 wp = p * uScale + uTrans;
         gl_Position = vec4((wp.x / uRes.x) * 2.0 - 1.0, 1.0 - (wp.y / uRes.y) * 2.0, 0, 1);
+        gl_PointSize = uPointSize;
         vCol = aColor;
     }
 `;
@@ -47,13 +49,14 @@ export function initWebGL(canvas) {
     const uTrans = gl.getUniformLocation(prog, 'uTrans');
     const uScale = gl.getUniformLocation(prog, 'uScale');
     const uRot = gl.getUniformLocation(prog, 'uRot');
+    const uPointSize = gl.getUniformLocation(prog, 'uPointSize');
 
     const buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.enableVertexAttribArray(aPosLoc);
     gl.enableVertexAttribArray(aColLoc);
 
-    function draw(mode, pos, color, tx, ty, sc, rot) {
+    function draw(mode, pos, color, tx, ty, sc, rot, ptSize) {
         const n = pos.length / 2;
         const data = new Float32Array(n * 5);
         for (let i = 0; i < n; i++) {
@@ -71,6 +74,7 @@ export function initWebGL(canvas) {
         gl.uniform2f(uTrans, tx, ty);
         gl.uniform1f(uScale, sc);
         gl.uniform1f(uRot, rot);
+        gl.uniform1f(uPointSize, ptSize || 1);
         gl.drawArrays(mode, 0, n);
     }
 

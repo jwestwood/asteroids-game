@@ -1,4 +1,4 @@
-export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives) {
+export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives, activePowerups) {
     ctx.clearRect(0, 0, W(), H());
 
     if (!gameStarted) {
@@ -41,6 +41,25 @@ export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives)
         ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
     ctx.restore();
+
+    // Active powerup indicators
+    const pwInfo = [
+        { key: 'invincible', label: 'INVINCIBLE', color: '#ffdb33' },
+        { key: 'rapidFire', label: 'RAPID FIRE', color: '#ff4033' },
+        { key: 'splitShot', label: 'SPLIT SHOT', color: '#4ddfff' },
+        { key: 'longRange', label: 'LONG RANGE', color: '#80b3ff' },
+    ];
+    let py = 80;
+    for (const pw of pwInfo) {
+        if (activePowerups[pw.key] > 0) {
+            const secs = Math.ceil(activePowerups[pw.key] / 60);
+            ctx.font = '13px monospace';
+            ctx.fillStyle = pw.color;
+            ctx.textAlign = 'left';
+            ctx.fillText(`${pw.label} (${secs}s)`, 20, py);
+            py += 20;
+        }
+    }
 
     if (gameOver) {
         ctx.textAlign = 'center';

@@ -13,6 +13,6 @@ export function asteroidShape(size) {
 
 export function renderAsteroids(draw, gl, asteroids) {
     for (const a of asteroids) {
-        draw(gl.LINE_STRIP, a.shape, a.col, a.x, a.y, 1, a.angle);
+        draw(gl.LINE_LOOP, a.shape, a.col, a.x, a.y, 1, a.angle);
     }
 }
