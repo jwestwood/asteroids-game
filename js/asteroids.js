@@ -1,17 +1,39 @@
 import { createExplosion } from './particles.js';
 
+const ASTEROID_LEVELS = {
+    1: {
+        childCount: 2, spMin: 1.5, spMax: 2.5, szMult: 0.55, velInherit: 0.3, rotSpdMax: 0.03,
+        bodyColor: { r: [0.8, 1], g: [0.4, 0.5], b: [0, 0.1] },
+        explosionColors: [[1, 0.7, 0.3], [1, 0.4, 0.1]],
+    },
+    2: {
+        childCount: 4, spMin: 3, spMax: 5, szMult: 0.5, velInherit: 0.4, rotSpdMax: 0.07,
+        bodyColor: { r: [0.8, 0.9], g: [0.2, 0.3], b: [0.5, 0.6] },
+        explosionColors: [[0.9, 0.3, 0.5], [1, 0.5, 0.6]],
+    },
+    3: {
+        childCount: 6, spMin: 2, spMax: 4, szMult: 0.4, velInherit: 0.5, rotSpdMax: 0.12,
+        bodyColor: { r: [0.1, 0.5], g: [0.8, 1], b: [0.8, 1] },
+        explosionColors: [[1, 0.1, 0.1], [1, 0.3, 0.2]],
+    },
+};
+
+function getAsteroidConfig(level) {
+    return ASTEROID_LEVELS[level] || ASTEROID_LEVELS[1];
+}
+
 export class Asteroid {
-    constructor(x, y, vx, vy, radius, isClusteroid = false, isIndestructible = false) {
+    constructor(x, y, vx, vy, radius, asteroidLevel = 1) {
         this.x = x;
         this.y = y;
         this.vx = vx;
         this.vy = vy;
         this.radius = radius;
         this.angle = 0;
-        this.rotSpd = (Math.random() - 0.5) * 0.02;
-        this.isClusteroid = isClusteroid;
-        this.isIndestructible = isIndestructible;
-        const geo = isIndestructible ? indestructibleGen(radius) : (isClusteroid ? clusteroidGen(radius) : asteroidGen(radius));
+        this.asteroidLevel = asteroidLevel;
+        const cfg = getAsteroidConfig(asteroidLevel);
+        this.rotSpd = (Math.random() - 0.5) * cfg.rotSpdMax;
+        const geo = asteroidGen(radius, asteroidLevel);
         this.shape = geo.shape;
         this.col = geo.col;
     }
@@ -23,48 +45,36 @@ export class Asteroid {
     }
 
     getScore() {
-        if (this.radius > 30) return 20;
-        if (this.radius > 15) return 50;
-        return 100;
+        const base = this.radius > 30 ? 20 : (this.radius > 15 ? 50 : 100);
+        return base * this.asteroidLevel;
     }
 
     split() {
         if (this.radius <= 15) return [];
-        const count = this.isClusteroid ? 4 : 2;
-        const spMin = this.isClusteroid ? 3 : 1.5;
-        const spMax = this.isClusteroid ? 5 : 2.5;
-        const szMult = this.isClusteroid ? 0.5 : 0.55;
-        const velInherit = this.isClusteroid ? 0.4 : 0.3;
-        const rotSpdMax = this.isClusteroid ? 0.06 : 0.05;
-
+        const cfg = getAsteroidConfig(this.asteroidLevel);
         const children = [];
-        for (let k = 0; k < count; k++) {
+        for (let k = 0; k < cfg.childCount; k++) {
             const ang = Math.random() * Math.PI * 2;
-            const sp = spMin + Math.random() * (spMax - spMin);
+            const sp = cfg.spMin + Math.random() * (cfg.spMax - cfg.spMin);
             const child = new Asteroid(
                 this.x, this.y,
-                Math.cos(ang) * sp + this.vx * velInherit,
-                Math.sin(ang) * sp + this.vy * velInherit,
-                this.radius * szMult,
-                this.isClusteroid,
-                this.isIndestructible
+                Math.cos(ang) * sp + this.vx * cfg.velInherit,
+                Math.sin(ang) * sp + this.vy * cfg.velInherit,
+                this.radius * cfg.szMult,
+                this.asteroidLevel
             );
-            child.rotSpd = (Math.random() - 0.5) * rotSpdMax;
+            child.rotSpd = (Math.random() - 0.5) * cfg.rotSpdMax;
             children.push(child);
         }
         return children;
     }
 
-    static createBulletExplosion(x, y, radius, isClusteroid) {
-        if (isClusteroid) {
-            return [
-                ...createExplosion(x, y, 20 + radius, 3, [0.9, 0.3, 0.5], 30, 2),
-                ...createExplosion(x, y, 8, 1.5, [1, 0.5, 0.6], 20, 3),
-            ];
-        }
+    static createBulletExplosion(x, y, radius, asteroidLevel) {
+        const cfg = getAsteroidConfig(asteroidLevel);
+        const [c1, c2] = cfg.explosionColors;
         return [
-            ...createExplosion(x, y, 20 + radius, 3, [1, 0.7, 0.3], 30, 2),
-            ...createExplosion(x, y, 8, 1.5, [1, 0.4, 0.1], 20, 3),
+            ...createExplosion(x, y, 20 + radius, 3, c1, 30, 2),
+            ...createExplosion(x, y, 8, 1.5, c2, 20, 3),
         ];
     }
 
@@ -80,39 +90,19 @@ export class Asteroid {
     }
 }
 
-function asteroidGen(size) {
+function asteroidGen(size, level) {
     const v = [], c = [];
     const n = 12 + Math.floor(Math.random() * 6);
+    const colors = getAsteroidConfig(level).bodyColor;
     for (let i = 0; i < n; i++) {
         const a = (i / n) * Math.PI * 2;
         const r = size * (0.6 + Math.random() * 0.4);
         v.push(Math.cos(a) * r, Math.sin(a) * r);
-        const h = 0.35 + Math.random() * 0.15;
-        c.push(h + 0.15, h + 0.1, h);
-    }
-    return { shape: v, col: c };
-}
-
-function indestructibleGen(size) {
-    const v = [], c = [];
-    const n = 10 + Math.floor(Math.random() * 4);
-    for (let i = 0; i < n; i++) {
-        const a = (i / n) * Math.PI * 2;
-        const r = size * (0.7 + Math.random() * 0.3);
-        v.push(Math.cos(a) * r, Math.sin(a) * r);
-        c.push(0.9 + Math.random() * 0.1, 0.85 + Math.random() * 0.1, 0.1 + Math.random() * 0.1);
-    }
-    return { shape: v, col: c };
-}
-
-function clusteroidGen(size) {
-    const v = [], c = [];
-    const n = 8 + Math.floor(Math.random() * 4);
-    for (let i = 0; i < n; i++) {
-        const a = (i / n) * Math.PI * 2;
-        const r = size * (0.5 + Math.random() * 0.5);
-        v.push(Math.cos(a) * r, Math.sin(a) * r);
-        c.push(0.7 + Math.random() * 0.3, 0.2 + Math.random() * 0.15, 0.3 + Math.random() * 0.2);
+        c.push(
+            colors.r[0] + Math.random() * (colors.r[1] - colors.r[0]),
+            colors.g[0] + Math.random() * (colors.g[1] - colors.g[0]),
+            colors.b[0] + Math.random() * (colors.b[1] - colors.b[0])
+        );
     }
     return { shape: v, col: c };
 }

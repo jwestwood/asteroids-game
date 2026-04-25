@@ -1,19 +1,49 @@
-export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives, activePowerups) {
+export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives, activePowerups, highscores, nameEntry, nameEntryActive, frameCount) {
     ctx.clearRect(0, 0, W(), H());
 
     if (!gameStarted) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+
+        // Calculate total height to center vertically
+        const topScores = highscores.slice(0, 10);
+        let totalH = 52; // title
+        if (topScores.length > 0) {
+            totalH += 50 + topScores.length * 22 + 10; // highscores section
+        }
+        totalH += 105; // start prompt + control hints
+        let cy = H() / 2 - totalH / 2;
+
         ctx.font = 'bold 52px monospace';
         ctx.fillStyle = '#fff';
-        ctx.fillText('ASTEROIDS', W() / 2, H() / 2 - 50);
+        ctx.fillText('ASTEROIDS', W() / 2, cy);
+        cy += 52;
+
+        if (topScores.length > 0) {
+            ctx.font = 'bold 18px monospace';
+            ctx.fillStyle = '#ff0';
+            ctx.fillText('HIGH SCORES', W() / 2, cy + 30);
+            ctx.font = '16px monospace';
+            ctx.fillStyle = '#ccc';
+            for (let i = 0; i < topScores.length; i++) {
+                const hs = topScores[i];
+                const rank = String(i + 1).padStart(2, ' ');
+                const name = hs.name.padEnd(12, ' ');
+                const sc = String(hs.score).padStart(8, ' ');
+                ctx.fillText(`${rank}. ${name}${sc}`, W() / 2, cy + 60 + i * 22);
+            }
+            cy += 60 + topScores.length * 22 + 20;
+        } else {
+            cy += 50;
+        }
+
         ctx.font = '20px monospace';
         ctx.fillStyle = '#aaa';
-        ctx.fillText('Press SPACE to start', W() / 2, H() / 2 + 10);
+        ctx.fillText('Press SPACE to start', W() / 2, cy);
         ctx.font = '16px monospace';
         ctx.fillStyle = '#666';
-        ctx.fillText('Arrow keys / WASD to move', W() / 2, H() / 2 + 50);
-        ctx.fillText('SPACE to shoot', W() / 2, H() / 2 + 75);
+        ctx.fillText('Arrow keys / WASD to move', W() / 2, cy + 40);
+        ctx.fillText('SPACE to shoot', W() / 2, cy + 65);
         return;
     }
 
@@ -66,12 +96,27 @@ export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives,
         ctx.textBaseline = 'middle';
         ctx.font = 'bold 48px monospace';
         ctx.fillStyle = '#f44';
-        ctx.fillText('GAME OVER', W() / 2, H() / 2 - 40);
+        ctx.fillText('GAME OVER', W() / 2, H() / 2 - 80);
         ctx.font = '24px monospace';
         ctx.fillStyle = '#fff';
-        ctx.fillText('Final Score: ' + score, W() / 2, H() / 2 + 10);
-        ctx.font = '20px monospace';
-        ctx.fillStyle = '#aaa';
-        ctx.fillText('Press SPACE to restart', W() / 2, H() / 2 + 50);
+        ctx.fillText('Final Score: ' + score, W() / 2, H() / 2 - 30);
+
+        if (nameEntryActive) {
+            const blink = Math.floor(frameCount / 30) % 2;
+            const cursor = blink ? '|' : '';
+            ctx.font = '22px monospace';
+            ctx.fillStyle = '#ff0';
+            ctx.fillText('Enter your name:', W() / 2, H() / 2 + 20);
+            ctx.font = 'bold 28px monospace';
+            ctx.fillStyle = '#fff';
+            ctx.fillText(nameEntry + cursor, W() / 2, H() / 2 + 60);
+            ctx.font = '16px monospace';
+            ctx.fillStyle = '#888';
+            ctx.fillText('Press ENTER to submit, SPACE to skip', W() / 2, H() / 2 + 100);
+        } else {
+            ctx.font = '20px monospace';
+            ctx.fillStyle = '#aaa';
+            ctx.fillText('Press SPACE to restart', W() / 2, H() / 2 + 20);
+        }
     }
 }

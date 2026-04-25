@@ -7,6 +7,8 @@ import { renderPowerups } from './powerups.js';
 import { renderParticles } from './particles.js';
 import { renderHUD } from './hud.js';
 import * as game from './game.js';
+import { initAudio, playSound } from './sounds.js';
+import { getHighscores } from './highscore.js';
 
 const glCanvas = document.getElementById('g');
 const hudCanvas = document.getElementById('hud');
@@ -40,25 +42,46 @@ initInput(
     () => {
         if (!started) {
             started = true;
+            initAudio();
             game.state.gameStarted = true;
             game.resetGame(W, H);
+            playSound('gameStart');
             return true;
         }
         return false;
     },
     () => {
-        if (game.state.gameOver) {
+        if (game.state.gameOver && game.state.nameEntryActive) {
+            game.skipNameEntry();
+            return;
+        }
+        if (!game.state.gameStarted) {
+            started = true;
+            initAudio();
+            game.state.gameStarted = true;
             game.state.gameOver = false;
+            game.state.awaitingRestart = false;
             game.state.score = 0;
             game.state.lives = 3;
             game.state.level = 1;
-            game.resetLevel(W, H);
+            game.resetGame(W, H);
+            playSound('gameStart');
         }
-    }
+    },
+    (ch) => { game.addNameChar(ch); },
+    () => { game.removeNameChar(); },
+    () => { game.submitHighscore(); },
+    () => { game.skipNameEntry(); }
 );
 
 function renderGL() {
-    gl.clearColor(0, 0, 0, 1);
+    const flash = game.state.nukeFlash;
+    if (flash > 0) {
+        const intensity = flash / 15;
+        gl.clearColor(intensity * 0.9, intensity * 0.8, intensity * 0.2, 1);
+    } else {
+        gl.clearColor(0, 0, 0, 1);
+    }
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     for (const s of stars) {
@@ -76,7 +99,7 @@ function loop() {
     frameCount++;
     game.update(W, H);
     renderGL();
-    renderHUD(ctx, W, H, game.state.gameStarted, game.state.gameOver, game.state.score, game.state.level, game.state.lives, game.state.activePowerups);
+    renderHUD(ctx, W, H, game.state.gameStarted, game.state.gameOver, game.state.score, game.state.level, game.state.lives, game.state.activePowerups, getHighscores(), game.state.nameEntry, game.state.nameEntryActive, frameCount);
     requestAnimationFrame(loop);
 }
 loop();

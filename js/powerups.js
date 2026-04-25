@@ -28,7 +28,7 @@ const DURATION = {
     [PowerupTypes.RAPID_FIRE]: 720,
     [PowerupTypes.SPLIT_SHOT]: 720,
     [PowerupTypes.LONG_RANGE]: 720,
-    [PowerupTypes.SHIELD]: 960,
+    [PowerupTypes.SHIELD]: 720,
 };
 
 const diamondVerts = [0, -16, 16, 0, 0, 16, -16, 0];
