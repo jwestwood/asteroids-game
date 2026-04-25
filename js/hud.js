@@ -44,10 +44,10 @@ export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives,
 
     // Active powerup indicators
     const pwInfo = [
-        { key: 'invincible', label: 'INVINCIBLE', color: '#ffdb33' },
         { key: 'rapidFire', label: 'RAPID FIRE', color: '#ff4033' },
         { key: 'splitShot', label: 'SPLIT SHOT', color: '#4ddfff' },
         { key: 'longRange', label: 'LONG RANGE', color: '#80b3ff' },
+        { key: 'shield', label: 'SHIELD', color: '#4dcfff' },
     ];
     let py = 80;
     for (const pw of pwInfo) {

@@ -9,3 +9,25 @@ export function wrap(o, W, H) {
     if (o.y < -50) o.y += H() + 100;
     if (o.y > H() + 50) o.y -= H() + 100;
 }
+
+export function buildCol(n, r, g, b) {
+    const c = [];
+    for (let i = 0; i < n; i++) c.push(r, g, b);
+    return c;
+}
+
+export function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+export function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+}
+
+export function randRange(min, max) {
+    return min + Math.random() * (max - min);
+}
+
+export function randAngle() {
+    return Math.random() * Math.PI * 2;
+}

@@ -1,42 +1,38 @@
-export const shipFill = [
-    18, 0, 10, -6, -8, -14, -12, -10, -6, -4,
-    4, 0, -6, 4, -12, 10, -8, 14, 10, 6
-];
-const shipFillCol = buildCol(shipFill.length / 2, 0.95, 0.95, 1);
+import { buildCol } from './utils.js';
 
-export const shipOutline = [
-    18, 0, 10, -6, -8, -14, -12, -10, -6, -4,
-    4, 0, -6, 4, -12, 10, -8, 14, 10, 6, 18, 0
-];
-const shipOutlineCol = buildCol(shipOutline.length / 2, 0.6, 0.7, 0.9);
+const shipVerts = [22,0, 10,-14, -8,-5, -8,5, 10,14];
+const engineGlow = [-8,-5, -8,5, -30,0];
+const engineCol = [];
+for (let i = 0; i < engineGlow.length / 2; i++) engineCol.push(1, 0.3, 0.15);
 
-export const shipCockpit = [8, 0, 0, -4, -4, 0, 0, 4];
-const shipCockpitCol = buildCol(shipCockpit.length / 2, 0.3, 0.5, 0.8);
-
-export const shipEngineL = [-10, -6, -16, -10, -12, -8];
-const shipEngineLCol = buildCol(shipEngineL.length / 2, 0.7, 0.7, 0.75);
-
-export const shipEngineR = [-10, 6, -16, 10, -12, 8];
-const shipEngineRCol = buildCol(shipEngineR.length / 2, 0.7, 0.7, 0.75);
-
-export const flameTri = [-12, 0, -26, -10, -26, 10];
-export const flameCol = [1, 0.6, 0.1, 1, 0.3, 0, 1, 0.8, 0.15];
-
-function buildCol(n, r, g, b) {
-    const c = [];
-    for (let i = 0; i < n; i++) c.push(r, g, b);
-    return c;
+const shieldVerts = [];
+const shieldCol = [];
+for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    shieldVerts.push(Math.cos(a) * 80, Math.sin(a) * 80);
+    shieldCol.push(0.2, 0.7, 1);
 }
 
-export function renderShip(draw, gl, ship, keys) {
+const shipVertCount = shipVerts.length / 2;
+
+export function renderShip(draw, gl, ship, keys, activePowerups) {
     if (!ship.alive) return;
     if (ship.invincible > 0 && Math.floor(ship.invincible / 4) % 2) return;
-    draw(gl.TRIANGLES, shipFill, shipFillCol, ship.x, ship.y, 1, ship.angle);
-    draw(gl.LINE_STRIP, shipOutline, shipOutlineCol, ship.x, ship.y, 1, ship.angle);
-    draw(gl.LINE_STRIP, shipCockpit, shipCockpitCol, ship.x, ship.y, 1, ship.angle);
-    draw(gl.TRIANGLES, shipEngineL, shipEngineLCol, ship.x, ship.y, 1, ship.angle);
-    draw(gl.TRIANGLES, shipEngineR, shipEngineRCol, ship.x, ship.y, 1, ship.angle);
-    if (keys['ArrowUp'] || keys['KeyW']) {
-        draw(gl.TRIANGLES, flameTri, flameCol, ship.x, ship.y, 1, ship.angle);
+
+    const shieldActive = activePowerups.shield > 0;
+    const shieldAlpha = shieldActive ? 0.3 + Math.sin(Date.now() * 0.005) * 0.15 : 0;
+
+    if (shieldAlpha > 0) {
+        draw(gl.LINE_LOOP, shieldVerts, shieldCol, ship.x, ship.y, 1, 0, 0, shieldAlpha);
     }
+
+    const engOn = keys['ArrowUp'] || keys['KeyW'];
+
+    if (engOn) {
+        const flicker = 0.8 + Math.random() * 0.2;
+        draw(gl.TRIANGLES, engineGlow, engineCol, ship.x, ship.y, flicker, ship.angle);
+    }
+
+    const shipCol = buildCol(shipVertCount, 0.9, 0.9, 1);
+    draw(gl.LINE_LOOP, shipVerts, shipCol, ship.x, ship.y, 1, ship.angle);
 }

@@ -66,10 +66,9 @@ function renderGL() {
     }
 
     renderPowerups(draw, gl, game.state.powerups, frameCount);
-    renderShip(draw, gl, game.state.ship, game.keys);
+    renderShip(draw, gl, game.state.ship, game.keys, game.state.activePowerups);
     renderBullets(draw, gl, game.state.bullets);
     renderAsteroids(draw, gl, game.state.asteroids);
-
     renderParticles(draw, gl, game.state.particles);
 }
 
