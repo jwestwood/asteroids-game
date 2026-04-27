@@ -1,4 +1,4 @@
-export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives, activePowerups, highscores, nameEntry, nameEntryActive, frameCount) {
+export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives, activePowerups, highscores, nameEntry, nameEntryActive, frameCount, hsLoading) {
     ctx.clearRect(0, 0, W(), H());
 
     if (!gameStarted) {
@@ -44,6 +44,22 @@ export function renderHUD(ctx, W, H, gameStarted, gameOver, score, level, lives,
         ctx.fillStyle = '#666';
         ctx.fillText('Arrow keys / WASD to move', W() / 2, cy + 40);
         ctx.fillText('SPACE to shoot', W() / 2, cy + 65);
+
+        // Loading spinner for highscores
+        if (hsLoading) {
+            const angle = (frameCount * Math.PI) / 15;
+            const sx = W() / 2;
+            const sy = cy + 95;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 12, angle, angle + Math.PI * 1.2);
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(sx, sy, 12, angle + Math.PI * 1.2, angle + Math.PI * 2);
+            ctx.strokeStyle = '#0ff';
+            ctx.stroke();
+        }
         return;
     }
 

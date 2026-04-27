@@ -8,7 +8,7 @@ import { renderParticles } from './particles.js';
 import { renderHUD } from './hud.js';
 import * as game from './game.js';
 import { initAudio, playSound } from './sounds.js';
-import { getHighscores } from './highscore.js';
+import { getHighscores, fetchHighscores, isLoading } from './highscore.js';
 
 const glCanvas = document.getElementById('g');
 const hudCanvas = document.getElementById('hud');
@@ -38,6 +38,7 @@ const H = () => glCanvas.height;
 
 let started = false;
 let frameCount = 0;
+fetchHighscores();
 initInput(
     () => {
         if (!started) {
@@ -46,6 +47,7 @@ initInput(
             game.state.gameStarted = true;
             game.resetGame(W, H);
             playSound('gameStart');
+            fetchHighscores();
             return true;
         }
         return false;
@@ -66,6 +68,7 @@ initInput(
             game.state.level = 1;
             game.resetGame(W, H);
             playSound('gameStart');
+            fetchHighscores();
         }
     },
     (ch) => { game.addNameChar(ch); },
@@ -99,7 +102,7 @@ function loop() {
     frameCount++;
     game.update(W, H);
     renderGL();
-    renderHUD(ctx, W, H, game.state.gameStarted, game.state.gameOver, game.state.score, game.state.level, game.state.lives, game.state.activePowerups, getHighscores(), game.state.nameEntry, game.state.nameEntryActive, frameCount);
+    renderHUD(ctx, W, H, game.state.gameStarted, game.state.gameOver, game.state.score, game.state.level, game.state.lives, game.state.activePowerups, getHighscores(), game.state.nameEntry, game.state.nameEntryActive, frameCount, isLoading());
     requestAnimationFrame(loop);
 }
 loop();

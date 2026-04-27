@@ -4,9 +4,9 @@
   "description": "Browser-based Asteroids clone using WebGL",
   "private": true,
   "scripts": {
-    "start": "serve -l 8080"
+    "start": "node server.js"
   },
-  "devDependencies": {
-    "serve": "^14.2.3"
+  "dependencies": {
+    "express": "^5.1.0"
   }
 }

@@ -1,34 +1,39 @@
-const STORAGE_KEY = 'asteroids_highscores';
-const MAX_HIGHSCORES = 10;
-
-function load() {
-    try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-    } catch {
-        return [];
-    }
-}
-
-function save(list) {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    } catch { /* ignore */ }
-}
+let highscores = [];
+let loading = false;
 
 export function getHighscores() {
-    return load();
+    return highscores;
 }
 
-export function addHighscore(name, score) {
-    const list = load();
-    list.push({ name: name.substring(0, 12), score });
-    list.sort((a, b) => b.score - a.score);
-    const trimmed = list.slice(0, MAX_HIGHSCORES);
-    save(trimmed);
-    return trimmed;
+export function isLoading() {
+    return loading;
 }
 
-export function getTopN(n) {
-    return load().slice(0, n);
+export async function fetchHighscores() {
+    loading = true;
+    try {
+        const res = await fetch('/api/highscores');
+        if (res.ok) {
+            highscores = await res.json();
+        }
+    } catch {
+        // Server not available, use empty list
+        highscores = [];
+    }
+    loading = false;
+}
+
+export async function addHighscore(name, score) {
+    try {
+        const res = await fetch('/api/highscores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, score }),
+        });
+        if (res.ok) {
+            await fetchHighscores();
+        }
+    } catch {
+        // Server not available
+    }
 }

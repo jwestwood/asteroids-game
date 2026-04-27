@@ -50,12 +50,27 @@ export class GameState {
         this.ship.alive = true;
         this.ship.invincible = SHIP_INVINCIBLE_TIME;
         this.resetLevel(W, H);
+        this.score = 0;
+        this.lives = 3;
+        this.level = 1;
+        this.gameOver = false;
+        this.gameStarted = true;
+        this.nameEntry = '';
+        this.nameEntryActive = false;
     }
 
     resetLevel(W, H) {
+        this.ship.x = W() / 2;
+        this.ship.y = H() / 2;
+        this.ship.vx = 0;
+        this.ship.vy = 0;
+        this.ship.angle = -Math.PI / 2;
         this.asteroids = [];
         this.bullets = [];
         this.particles = [];
+        this.powerups = [];
+        this.activePowerups = { rapidFire: 0, splitShot: 0, longRange: 0, shield: 0 };
+        this.nukeFlash = 0;
         this.ship.invincible = SHIP_INVINCIBLE_TIME;
         this.spawnAsteroids(50, W, H);
     }
@@ -340,13 +355,13 @@ export class GameState {
     }
 
     submitHighscore() {
-        if (!this.nameEntryActive) return false;
-        const name = this.nameEntry.trim() || 'ANON';
+        if (!this.gameOver || !this.nameEntryActive) return;
+        const name = this.nameEntry || 'ANON';
         addHighscore(name, this.score);
         this.nameEntryActive = false;
         this.gameOver = false;
         this.gameStarted = false;
-        return true;
+        this.awaitingRestart = false;
     }
 
     skipNameEntry() {
