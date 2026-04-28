@@ -8,8 +8,6 @@ import { playSound, startThrust, stopThrust } from './sounds.js';
 import { addHighscore, getHighscores } from './highscore.js';
 export { keys };
 
-const POWERUP_SPAWN_MIN = 300;
-const POWERUP_SPAWN_MAX = 600;
 const SHIELD_RADIUS = 80;
 const SHIP_RESPAWN_TIME = 120;
 const SHIP_INVINCIBLE_TIME = 180;
@@ -29,10 +27,8 @@ export class GameState {
         this.powerups = [];
         this.score = 0;
         this.lives = 3;
-        this.level = 1;
+        this.level = 10;
         this.fireCooldown = 0;
-        this.powerupTimer = 0;
-        this.powerupNext = POWERUP_SPAWN_MIN + Math.floor(Math.random() * (POWERUP_SPAWN_MAX - POWERUP_SPAWN_MIN));
         this.activePowerups = { rapidFire: 0, splitShot: 0, longRange: 0, shield: 0 };
         this.gameOver = false;
         this.gameStarted = false;
@@ -107,7 +103,6 @@ export class GameState {
         this.updateBullets(W, H);
         this.updateAsteroids(W, H);
         this.updateParticles();
-        this.updatePowerupSpawning(W, H);
         this.updatePowerupCollection();
         this.updateActivePowerupTimers();
         this.handleBulletAsteroidCollision();
@@ -213,18 +208,21 @@ export class GameState {
         }
     }
 
-    updatePowerupSpawning(W, H) {
-        if (!this.gameStarted || this.gameOver) return;
-        this.powerupTimer++;
-        if (this.powerupTimer >= this.powerupNext) {
-            this.powerupTimer = 0;
-            this.powerupNext = POWERUP_SPAWN_MIN + Math.floor(Math.random() * (POWERUP_SPAWN_MAX - POWERUP_SPAWN_MIN));
-            const count = Math.random() < 0.25 ? 2 : 1;
-            for (let n = 0; n < count; n++) {
-                const cx = W() / 2 + (Math.random() - 0.5) * W() * 0.8;
-                const cy = H() / 2 + (Math.random() - 0.5) * H() * 0.8;
-                const type = getAllPowerupTypes()[Math.floor(Math.random() * getAllPowerupTypes().length)];
-                this.powerups.push(new PowerUp(cx, cy, type));
+    spawnPowerupFromAsteroid(x, y) {
+        const type = getAllPowerupTypes()[Math.floor(Math.random() * getAllPowerupTypes().length)];
+        this.powerups.push(new PowerUp(x, y, type));
+    }
+
+    spawnPowerupsForAsteroid(asteroid) {
+        if (asteroid.radius > 30) {
+            if (asteroid.asteroidLevel === 3) {
+                const a1 = Math.random() * Math.PI * 2;
+                const a2 = a1 + Math.PI;
+                const offset = 30;
+                this.spawnPowerupFromAsteroid(asteroid.x + Math.cos(a1) * offset, asteroid.y + Math.sin(a1) * offset);
+                this.spawnPowerupFromAsteroid(asteroid.x + Math.cos(a2) * offset, asteroid.y + Math.sin(a2) * offset);
+            } else {
+                this.spawnPowerupFromAsteroid(asteroid.x, asteroid.y);
             }
         }
     }
@@ -259,6 +257,7 @@ export class GameState {
         for (const a of this.asteroids) {
             this.score += a.getScore();
             this.particles.push(...Asteroid.createNukeExplosion(a.x, a.y, a.radius));
+            this.spawnPowerupsForAsteroid(a);
             newAsteroids.push(...a.split());
         }
         this.asteroids = newAsteroids;
@@ -288,6 +287,7 @@ export class GameState {
         this.score += ast.getScore();
         this.particles.push(...Asteroid.createBulletExplosion(ast.x, ast.y, ast.radius, ast.asteroidLevel));
         playSound('explosion');
+        this.spawnPowerupsForAsteroid(ast);
         this.asteroids.splice(index, 1, ...ast.split());
     }
 
